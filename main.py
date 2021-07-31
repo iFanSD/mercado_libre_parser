@@ -6,7 +6,7 @@ import pytz
 from bs4 import BeautifulSoup as BS
 
 # Comment or uncomment categories
-selected_categories = (
+list_of_categories = (
     # 'Accesorios para Vehículos',      # Vehicle Accessories
     # 'Agro',                           # Agro
     # 'Alimentos y Bebidas',            # Food and drinks
@@ -44,7 +44,7 @@ selected_categories = (
 session = requests.Session()
 
 headers = {
-    "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36",
 }
 
 
@@ -90,7 +90,7 @@ def request(url, retry=5):
         return response.text
 
 
-def get_categories_links(selected_categories=selected_categories):
+def get_categories_links(selected_categories):
     """Getting titles and links of categories"""
     response = request(root)
     soup = BS(response, 'lxml')
@@ -157,7 +157,7 @@ def parse_data(item_link, title_of_main_category, title_of_subcategory):
         'item': {
             'source': 'Mercado_Libre_ARG',
             'sku': data_raw.get('productID'),
-            'name': data_raw.get("name"),
+            'name': data_raw.get("name").strip(),
             'currency': currency,
             'category': title_of_main_category,
             'subcategory': title_of_subcategory,
@@ -179,23 +179,18 @@ def parse_data(item_link, title_of_main_category, title_of_subcategory):
 def main():
     all_objects = []
     try:
-        start = time.perf_counter()
         n=0
-        for catetegory in get_categories_links():
+        for catetegory in get_categories_links(list_of_categories):
             print(catetegory[2])
-            for item in getting_links_to_items(link_to_subcategory=catetegory[2]):
+            for item in getting_links_to_items(catetegory[2]):
                 get_data = parse_data(item, title_of_main_category=catetegory[0],
                                            title_of_subcategory=catetegory[1])
                 if get_data:
                     all_objects.append(get_data)
                 n+=1
                 print(n,get_data)
-                fin = time.perf_counter() - start
-                print(fin)
     except Exception as ex:
         print(ex)
-        fin = time.perf_counter() - start
-        print(fin)
     finally:
         print(f'saving to output_json/data-{str(datetime.datetime.now())[:-7]}.json')
         with open(f'output_json/data-{str(datetime.datetime.now())[:-7]}.json', 'w', encoding='utf-8') as json_file:
