@@ -25,15 +25,15 @@ list_of_categories = (
     # 'Electrodomésticos y Aires Ac.',  # Appliances and Aires Ac.
     # 'Electrónica, Audio y Video',     # Electronics, Audio and Video
     # 'Entradas para Eventos',          # Event Tickets
-    # 'Herramientas',                   # Tools
-    # 'Hogar, Muebles y Jardín',        # Home, Furniture and Garden
-    # 'Industrias y Oficinas',          # Industries and Offices
-    # 'Inmuebles',                      # Estate
-    # 'Instrumentos Musicales',         # Musical instruments
-    # 'Joyas y Relojes',                # Jewelry and watches
-    # 'Juegos y Juguetes',              # Games and toys
-    # 'Libros, Revistas y Comics',      # Books, Magazines and Comics
-    # 'Música, Películas y Series',     # Music, Movies and Series
+    'Herramientas',                   # Tools
+    'Hogar, Muebles y Jardín',        # Home, Furniture and Garden
+    'Industrias y Oficinas',          # Industries and Offices
+    'Inmuebles',                      # Estate
+    'Instrumentos Musicales',         # Musical instruments
+    'Joyas y Relojes',                # Jewelry and watches
+    'Juegos y Juguetes',              # Games and toys
+    'Libros, Revistas y Comics',      # Books, Magazines and Comics
+    'Música, Películas y Series',     # Music, Movies and Series
     # 'Ropa y Accesorios',              # Clothes and accessories
     # 'Salud y Equipamiento Médico',    # Health and Medical Equipment
     # 'Servicios',                      # Services
@@ -55,7 +55,8 @@ proxy_list = [{
               {
                   "http": "http://demoend:test123@34.138.226.3:3128/", # USA
                   "https": "http://demoend:test123@34.138.226.3:3128"
-              }
+              },
+    {} #local
 ]
 
 session.headers.update(headers)
@@ -71,14 +72,20 @@ def proxy_rotation(list_of_proxy):
 
 
 def request(url, retry=5):
-    """Getting HTML"""
+    """Getting HTML, 403 error prevention"""
     try:
         # time.sleep(1.8)
         response = session.get(url)
         proxy = proxy_rotation(proxy_list)
         while response.status_code == 403:
-            session.proxies.update(next(proxy))
-            response = session.get(url)
+            print('Error 403. IP switching')
+            updated_proxy=next(proxy)
+            if updated_proxy:
+                session.proxies.update(updated_proxy)
+                response = session.get(url)
+            else: # local ip
+                session.proxies.clear()
+                response = session.get(url)
     except Exception as ex:
         time.sleep(3)
         print(f'{retry=},{url=},{ex=}')
