@@ -48,10 +48,7 @@ headers = {
 }
 
 
-proxy_list = [{
-                  "http": "http://demoend:test123@34.142.79.214:3128/", # UK
-                  "https": "http://demoend:test123@34.142.79.214:3128"
-              },
+proxy_list = [
               {
                   "http": "http://demoend:test123@34.138.226.3:3128/", # USA
                   "https": "http://demoend:test123@34.138.226.3:3128"
@@ -146,7 +143,10 @@ def parse_data(item_link, title_of_main_category, title_of_subcategory):
     """Parse items"""
     response = request(item_link)
     soup = BS(response, 'lxml')
-    data_raw = soup.find('script', {'type': 'application/ld+json'}).string
+    try:
+        data_raw = soup.find('script', {'type': 'application/ld+json'}).string
+    except:
+        return None
     data_raw = json.loads(data_raw)
     try:
         availability = data_raw['offers'].get('availability').replace('http://schema.org/', '')
